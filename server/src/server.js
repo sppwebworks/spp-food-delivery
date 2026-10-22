@@ -30,7 +30,6 @@ const io = new Server(server, {
 });
 
 io.use(async (socket, next) => {
-  // ... existing socket middleware
   try {
     const token = socket.handshake.auth?.token;
     if (token) {
@@ -50,7 +49,6 @@ io.use(async (socket, next) => {
 });
 
 io.on("connection", (socket) => {
-  // ... existing socket connection logic
   if (socket.userId) socket.join(`user:${socket.userId}`);
   socket.on("join:admin", () => {
     if (socket.userRole === "admin") socket.join("admin");
@@ -64,12 +62,26 @@ setIO(io);
    ============================================================ */
 app.get("/api/admin/stats", protect, adminOnly, getStats);
 
+/* ============================================================
+   ✅ STARTUP WITH ERROR LOGGING
+   ============================================================ */
 (async () => {
-  await connectDB();
-  await verifyEmailConfig();
+  try {
+    console.log("🔄 Connecting to MongoDB...");
+    await connectDB();
+    console.log("✅ MongoDB connected");
 
-  server.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`🔌 Socket.IO ready`);
-  });
+    console.log("🔄 Verifying Email...");
+    await verifyEmailConfig();
+    console.log("✅ Email verified");
+
+    server.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`🔌 Socket.IO ready`);
+    });
+  } catch (error) {
+    console.error("❌ CRITICAL STARTUP ERROR:");
+    console.error(error);
+    process.exit(1);
+  }
 })();
