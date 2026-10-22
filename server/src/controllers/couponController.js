@@ -14,21 +14,17 @@ export const getCoupons = asyncHandler(async (req, res) => {
    ============================================================ */
 export const createCoupon = asyncHandler(async (req, res) => {
   const { code, expiresAt } = req.body;
-
   const existing = await Coupon.findOne({ code: code.toUpperCase() });
   if (existing) {
     res.status(400);
     throw new Error("Coupon code already exists");
   }
-
-  // Force standard types and dates
   const payload = {
     ...req.body,
     code: code.toUpperCase(),
     discountType: req.body.discountType.toLowerCase(),
     expiresAt: expiresAt ? new Date(expiresAt) : null,
   };
-
   const coupon = await Coupon.create(payload);
   res.status(201).json(coupon);
 });
@@ -38,7 +34,6 @@ export const createCoupon = asyncHandler(async (req, res) => {
    ============================================================ */
 export const updateCoupon = asyncHandler(async (req, res) => {
   const { expiresAt } = req.body;
-
   const payload = {
     ...req.body,
     discountType: req.body.discountType
@@ -46,12 +41,10 @@ export const updateCoupon = asyncHandler(async (req, res) => {
       : undefined,
     expiresAt: expiresAt ? new Date(expiresAt) : null,
   };
-
   const coupon = await Coupon.findByIdAndUpdate(req.params.id, payload, {
     new: true,
     runValidators: true,
   });
-
   if (!coupon) {
     res.status(404);
     throw new Error("Coupon not found");
@@ -72,29 +65,24 @@ export const deleteCoupon = asyncHandler(async (req, res) => {
 });
 
 /* ============================================================
-   PUBLIC — VALIDATE COUPON (Checkout)
+   PUBLIC — VALIDATE COUPON
    ============================================================ */
 export const validateCoupon = asyncHandler(async (req, res) => {
   const { code, subtotal } = req.body;
-
   const coupon = await Coupon.findOne({
     code: code.toUpperCase(),
     isActive: true,
   });
-
   if (!coupon) {
     res.status(404);
     throw new Error("Invalid coupon code");
   }
-
   const check = coupon.isValid(subtotal);
   if (!check.valid) {
     res.status(400);
     throw new Error(check.reason);
   }
-
   const discount = coupon.calculateDiscount(subtotal);
-
   res.json({
     valid: true,
     coupon: {
@@ -106,7 +94,7 @@ export const validateCoupon = asyncHandler(async (req, res) => {
 });
 
 /* ============================================================
-   PUBLIC — GET ACTIVE COUPONS (Offers Page)
+   PUBLIC — GET ACTIVE COUPONS
    ============================================================ */
 export const getActiveCoupons = asyncHandler(async (req, res) => {
   const coupons = await Coupon.find({
@@ -115,6 +103,5 @@ export const getActiveCoupons = asyncHandler(async (req, res) => {
   })
     .select("code description discountType discountValue minOrderValue")
     .sort("-createdAt");
-
   res.json({ coupons });
 });
