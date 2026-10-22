@@ -342,4 +342,5 @@ const Coupons = () => {
     </div>
   );
 };
+
 export default Coupons;

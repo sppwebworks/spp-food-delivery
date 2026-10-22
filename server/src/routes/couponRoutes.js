@@ -1,7 +1,9 @@
 import express from "express";
-import { validateCoupon } from "../controllers/couponController.js";
-import { protect } from "../middleware/authMiddleware.js";
+import { validateCoupon, getActiveCoupons } from "../controllers/couponController.js";
 
 const router = express.Router();
-router.post("/validate", protect, validateCoupon);
+
+router.get("/", getActiveCoupons);       // For Offers page
+router.post("/validate", validateCoupon); // For Checkout
+
 export default router;

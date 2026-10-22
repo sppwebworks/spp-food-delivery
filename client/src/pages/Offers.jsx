@@ -1,94 +1,62 @@
-/**
- * ============================================================
- * OFFERS PAGE  (/offers)
- * ============================================================
- * Grid of coupon cards. "Apply" copies the code to clipboard.
- * ============================================================
- */
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { applyCoupon, selectCartItems } from "../features/cart/cartSlice";
 import { useToast } from "../context/ToastContext";
-import { useDispatch } from "react-redux";
-import { applyCoupon } from "../features/cart/cartSlice";
 
-const COUPONS = [
+const OFFERS = [
   {
-    code: "SAVE50",
+    id: 1,
     title: "Flat ₹50 OFF",
-    description: "On orders above ₹200",
-    minOrder: 200,
-    discount: "₹50 off",
-    type: "flat",
-    value: 50,
-    validTill: "31 Dec 2026",
+    subtitle: "On orders above ₹200",
+    code: "SAVE50",
+    emoji: "🎉",
     color: "orange",
-    icon: "🎉",
     tag: "Most Used",
   },
   {
-    code: "FIRST20",
+    id: 2,
     title: "20% OFF",
-    description: "On your first order above ₹300",
-    minOrder: 300,
-    discount: "Up to ₹100",
-    type: "percent",
-    value: 20,
-    validTill: "31 Dec 2026",
+    subtitle: "On your first order above ₹300",
+    code: "FIRST20",
+    emoji: "🍕",
     color: "red",
-    icon: "🍕",
     tag: "New User",
   },
   {
-    code: "WELCOME",
+    id: 3,
     title: "₹100 OFF",
-    description: "On orders above ₹500",
-    minOrder: 500,
-    discount: "₹100 off",
-    type: "flat",
-    value: 100,
-    validTill: "31 Dec 2026",
+    subtitle: "On orders above ₹500",
+    code: "WELCOME",
+    emoji: "🎁",
     color: "purple",
-    icon: "🎁",
     tag: "Big Order",
   },
   {
-    code: "FREEDEL",
+    id: 4,
     title: "Free Delivery",
-    description: "On orders above ₹150",
-    minOrder: 150,
-    discount: "₹30 off",
-    type: "flat",
-    value: 30,
-    validTill: "31 Dec 2026",
+    subtitle: "On orders above ₹150",
+    code: "FREEDEL",
+    emoji: "🛵",
     color: "green",
-    icon: "🛵",
     tag: "Popular",
   },
   {
-    code: "WEEKEND",
+    id: 5,
     title: "30% OFF",
-    description: "Weekend special on orders above ₹400",
-    minOrder: 400,
-    discount: "Up to ₹150",
-    type: "percent",
-    value: 30,
-    validTill: "Every weekend",
+    subtitle: "Weekend special on orders above ₹400",
+    code: "WEEKEND",
+    emoji: "🌟",
     color: "blue",
-    icon: "🌟",
     tag: "Weekend",
   },
   {
-    code: "BIRYANI",
+    id: 6,
     title: "₹75 OFF on Biryani",
-    description: "On your favourite biryani above ₹250",
-    minOrder: 250,
-    discount: "₹75 off",
-    type: "flat",
-    value: 75,
-    validTill: "31 Dec 2026",
+    subtitle: "On your favourite biryani above ₹250",
+    code: "BIRYANI",
+    emoji: "🍛",
     color: "orange",
-    icon: "🍛",
     tag: "Cuisine",
   },
 ];
@@ -97,121 +65,312 @@ const Offers = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { showToast } = useToast();
-  const [copiedCode, setCopiedCode] = useState(null);
 
-  const handleCopy = async (coupon) => {
-    try {
-      await navigator.clipboard.writeText(coupon.code);
-      setCopiedCode(coupon.code);
-      showToast(`Code ${coupon.code} copied!`, "success");
-      setTimeout(() => setCopiedCode(null), 2000);
-    } catch {
-      showToast("Failed to copy", "error");
+  const cartItems = useSelector(selectCartItems);
+  const { token } = useSelector((s) => s.auth); // ✅ Check if logged in
+
+  const [copiedId, setCopiedId] = useState(null);
+
+  const handleCopy = (code, id) => {
+    navigator.clipboard.writeText(code);
+    setCopiedId(id);
+    showToast("Code copied to clipboard!", "success");
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleApply = async (code) => {
+    // 1. ✅ Check Login
+    if (!token) {
+      showToast("Please login to apply coupons", "error");
+      navigate("/login");
+      return;
+    }
+
+    // 2. ✅ Check Cart
+    if (cartItems.length === 0) {
+      showToast("Your cart is empty. Add items first!", "error");
+      return;
+    }
+
+    // 3. Apply the coupon
+    const result = await dispatch(applyCoupon(code));
+
+    if (applyCoupon.fulfilled.match(result)) {
+      showToast(`Coupon ${code} applied successfully!`, "success");
+      navigate("/checkout"); // Send them to checkout to see the discount
+    } else {
+      showToast(result.payload || "Failed to apply coupon", "error");
     }
   };
 
-  const handleApply = (coupon) => {
-    dispatch(
-      applyCoupon({
-        code: coupon.code,
-        type: coupon.type,
-        value: coupon.value,
-        minOrder: coupon.minOrder,
-        description: coupon.description,
-      }),
-    );
-    showToast(`Coupon ${coupon.code} applied!`, "success");
-    navigate("/restaurants");
-  };
-
   return (
-    <div className="container" style={{ padding: "28px 24px" }}>
-      {/* HEADER */}
-      <div className="offers-header">
-        <div>
-          <h1>Offers & Coupons 🎉</h1>
-          <p className="offers-subtitle">
-            Save more on every order with these exclusive deals
-          </p>
-        </div>
+    <div
+      className="container"
+      style={{ padding: "40px 20px", maxWidth: 1000, margin: "0 auto" }}
+    >
+      {/* Header */}
+      <div style={{ textAlign: "center", marginBottom: 40 }}>
+        <h1
+          style={{
+            fontSize: 32,
+            fontWeight: 900,
+            color: "var(--text)",
+            marginBottom: 8,
+          }}
+        >
+          Offers & Coupons 🎉
+        </h1>
+        <p style={{ color: "var(--text-3)", fontSize: 16 }}>
+          Save more on every order with these exclusive deals
+        </p>
       </div>
 
-      {/* GRID */}
-      <div className="offers-grid">
-        {COUPONS.map((coupon) => {
-          const isCopied = copiedCode === coupon.code;
-          return (
+      {/* Offers Grid */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+          gap: 24,
+          marginBottom: 60,
+        }}
+      >
+        {OFFERS.map((offer) => (
+          <div
+            key={offer.id}
+            className={`offer-card offer-${offer.color}`}
+            style={{
+              background: "var(--bg)",
+              border: "1px solid var(--border)",
+              borderRadius: 16,
+              padding: 24,
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              gap: 16,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
+            }}
+          >
+            {/* Tag */}
             <div
-              key={coupon.code}
-              className={`offer-card offer-${coupon.color}`}
+              style={{
+                position: "absolute",
+                top: 16,
+                right: 16,
+                fontSize: 10,
+                fontWeight: 800,
+                textTransform: "uppercase",
+                letterSpacing: 0.5,
+                padding: "4px 10px",
+                borderRadius: 20,
+                background: "var(--bg-3)",
+                color: "var(--text-2)",
+              }}
             >
-              {/* Tag */}
-              <span className="offer-tag">{coupon.tag}</span>
+              {offer.tag}
+            </div>
 
-              {/* Icon + Title */}
-              <div className="offer-top">
-                <div className="offer-icon">{coupon.icon}</div>
-                <div>
-                  <h3 className="offer-title">{coupon.title}</h3>
-                  <p className="offer-subtitle">{coupon.description}</p>
-                </div>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 16,
+                marginTop: 8,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 40,
+                  width: 56,
+                  height: 56,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: 14,
+                  background: "var(--bg-2)",
+                }}
+              >
+                {offer.emoji}
               </div>
-
-              {/* Dashed divider */}
-              <div className="offer-dashed" />
-
-              {/* Code + Copy */}
-              <div className="offer-code-row">
-                <div className="offer-code-box">
-                  <span className="offer-code-label">USE CODE</span>
-                  <strong className="offer-code">{coupon.code}</strong>
-                </div>
-
-                <button
-                  type="button"
-                  className={`offer-copy-btn ${isCopied ? "copied" : ""}`}
-                  onClick={() => handleCopy(coupon)}
+              <div>
+                <h3
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 800,
+                    color: "var(--text)",
+                    margin: "0 0 4px 0",
+                  }}
                 >
-                  {isCopied ? "✓ Copied" : "Copy"}
-                </button>
-              </div>
-
-              {/* Footer */}
-              <div className="offer-footer">
-                <span className="offer-valid">
-                  Valid till {coupon.validTill}
-                </span>
-                <button
-                  type="button"
-                  className="offer-apply-btn"
-                  onClick={() => handleApply(coupon)}
-                >
-                  Apply →
-                </button>
+                  {offer.title}
+                </h3>
+                <p style={{ fontSize: 13, color: "var(--text-2)", margin: 0 }}>
+                  {offer.subtitle}
+                </p>
               </div>
             </div>
-          );
-        })}
+
+            {/* Divider */}
+            <div
+              style={{
+                borderTop: "1.5px dashed var(--border)",
+                margin: "4px 0",
+              }}
+            />
+
+            {/* Code & Buttons */}
+            <div style={{ display: "flex", gap: 10 }}>
+              <div
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 4,
+                  padding: "10px 14px",
+                  borderRadius: 10,
+                  background: "var(--bg-2)",
+                  border: "1.5px dashed var(--border-2)",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    letterSpacing: 0.8,
+                    color: "var(--text-3)",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Use Code
+                </span>
+                <span
+                  style={{
+                    fontFamily: "monospace",
+                    fontSize: 16,
+                    fontWeight: 800,
+                    letterSpacing: 1,
+                    color: "var(--text)",
+                  }}
+                >
+                  {offer.code}
+                </span>
+              </div>
+              <button
+                onClick={() => handleCopy(offer.code, offer.id)}
+                style={{
+                  padding: "0 16px",
+                  height: 48,
+                  alignSelf: "flex-end",
+                  borderRadius: 10,
+                  background:
+                    copiedId === offer.id
+                      ? "rgba(72, 196, 121, 0.15)"
+                      : "var(--bg-3)",
+                  color:
+                    copiedId === offer.id ? "var(--success)" : "var(--text)",
+                  border: "none",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
+              >
+                {copiedId === offer.id ? "Copied!" : "Copy"}
+              </button>
+            </div>
+
+            {/* Apply Button */}
+            <button
+              onClick={() => handleApply(offer.code)}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "var(--primary)",
+                fontSize: 13,
+                fontWeight: 800,
+                cursor: "pointer",
+                textAlign: "left",
+                padding: 0,
+              }}
+            >
+              Apply this code →
+            </button>
+          </div>
+        ))}
       </div>
 
-      {/* HOW IT WORKS */}
-      <section className="offers-how">
-        <h2>How to use a coupon?</h2>
-        <div className="offers-how-grid">
-          <div className="offers-how-step">
-            <div className="offers-how-num">1</div>
-            <p>Browse offers and pick the one that fits your order</p>
-          </div>
-          <div className="offers-how-step">
-            <div className="offers-how-num">2</div>
-            <p>Copy the code or click "Apply" to add it to your cart</p>
-          </div>
-          <div className="offers-how-step">
-            <div className="offers-how-num">3</div>
-            <p>Discount is applied automatically at checkout 🎉</p>
-          </div>
+      {/* How to use */}
+      <div
+        style={{
+          background: "var(--bg-2)",
+          borderRadius: 16,
+          padding: 40,
+          textAlign: "center",
+        }}
+      >
+        <h2
+          style={{
+            fontSize: 22,
+            fontWeight: 800,
+            marginBottom: 24,
+            color: "var(--text)",
+          }}
+        >
+          How to use a coupon?
+        </h2>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: 24,
+            maxWidth: 800,
+            margin: "0 auto",
+          }}
+        >
+          {[
+            "Browse offers and pick the one that fits your order",
+            'Copy the code or click "Apply" to add it to your cart',
+            "Discount is applied automatically at checkout 🎉",
+          ].map((step, i) => (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 12,
+              }}
+            >
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: "50%",
+                  background:
+                    "linear-gradient(135deg, var(--primary), var(--primary-hover))",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 20,
+                  fontWeight: 800,
+                  boxShadow: "0 8px 20px rgba(252, 128, 25, 0.3)",
+                }}
+              >
+                {i + 1}
+              </div>
+              <p
+                style={{
+                  fontSize: 14,
+                  color: "var(--text-2)",
+                  lineHeight: 1.5,
+                  margin: 0,
+                }}
+              >
+                {step}
+              </p>
+            </div>
+          ))}
         </div>
-      </section>
+      </div>
     </div>
   );
 };
