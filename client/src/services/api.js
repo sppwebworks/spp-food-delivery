@@ -8,13 +8,10 @@ import axios from "axios";
 
 const baseURL = import.meta.env.VITE_API_URL;
 
-if (!baseURL && import.meta.env.MODE !== "test") {
-  console.error("❌ VITE_API_URL is not set.");
-}
-
 const api = axios.create({
   baseURL,
-  timeout: 15000,
+  // ✅ Increased from 15000 to 30000 (30 seconds)
+  timeout: 30000,
 });
 
 api.interceptors.request.use(
@@ -39,9 +36,6 @@ api.interceptors.response.use(
   },
 );
 
-/* ============================================================
-   ✅ Download Invoice (PDF blob helper)
-   ============================================================ */
 export const downloadInvoice = async (orderId) => {
   const token = localStorage.getItem("token");
   const res = await fetch(`${baseURL}/orders/${orderId}/invoice`, {
@@ -53,9 +47,7 @@ export const downloadInvoice = async (orderId) => {
     try {
       const data = await res.json();
       message = data.message || message;
-    } catch {
-      /* ignore */
-    }
+    } catch {}
     throw new Error(message);
   }
 

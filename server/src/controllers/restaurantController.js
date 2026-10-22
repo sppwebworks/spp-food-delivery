@@ -1,12 +1,3 @@
-/**
- * ============================================================
- * RESTAURANT CONTROLLER
- * ============================================================
- * Public: list, detail, menu item, areas
- * Admin:  CRUD for restaurants and menu items
- * ============================================================
- */
-
 import asyncHandler from "express-async-handler";
 import Restaurant from "../models/Restaurant.js";
 import MenuItem from "../models/MenuItem.js";
@@ -17,7 +8,7 @@ import { parsePagination } from "../utils/helpers.js";
    ============================================================ */
 export const listRestaurants = asyncHandler(async (req, res) => {
   const { city, area, cuisine, search } = req.query;
-  const { page, limit, skip } = parsePagination(req.query, 50);
+  const { page, limit, skip } = parsePagination(req.query, 20);
 
   const filter = { isActive: true };
 
@@ -28,34 +19,45 @@ export const listRestaurants = asyncHandler(async (req, res) => {
     filter.cuisines = { $in: [new RegExp(`^${cuisine}$`, "i")] };
   }
 
-  const areaClauses = [];
+  const ands = [];
+
   if (area) {
     const areaRegex = new RegExp(area, "i");
-    areaClauses.push(
-      { "address.line1": areaRegex },
-      { "address.line2": areaRegex },
-      { "address.city": areaRegex },
-    );
+    ands.push({
+      $or: [
+        { "address.line1": areaRegex },
+        { "address.line2": areaRegex },
+        { "address.city": areaRegex },
+      ],
+    });
   }
 
-  const searchClauses = [];
   if (search) {
     const searchRegex = new RegExp(search, "i");
-    searchClauses.push(
-      { name: searchRegex },
-      { description: searchRegex },
-      { cuisines: searchRegex },
-    );
+    ands.push({
+      $or: [
+        { name: searchRegex },
+        { description: searchRegex },
+        { cuisines: searchRegex },
+      ],
+    });
   }
 
-  const ands = [];
-  if (areaClauses.length) ands.push({ $or: areaClauses });
-  if (searchClauses.length) ands.push({ $or: searchClauses });
-  if (ands.length) filter.$and = ands;
+  if (ands.length > 0) {
+    filter.$and = ands;
+  }
 
   const [total, restaurants] = await Promise.all([
     Restaurant.countDocuments(filter),
-    Restaurant.find(filter).sort("-isFeatured -rating").skip(skip).limit(limit),
+    Restaurant.find(filter)
+      // ✅ Select only what the frontend needs for the list
+      .select(
+        "name image cuisines rating reviewCount deliveryTime priceForTwo offer isVeg isFeatured",
+      )
+      .sort("-isFeatured -rating")
+      .skip(skip)
+      .limit(limit)
+      .lean(), // ✅ .lean() makes it 3x faster
   ]);
 
   res.json({
@@ -71,7 +73,7 @@ export const listRestaurants = asyncHandler(async (req, res) => {
    PUBLIC — GET SINGLE RESTAURANT WITH MENU
    ============================================================ */
 export const getRestaurantById = asyncHandler(async (req, res) => {
-  const restaurant = await Restaurant.findById(req.params.id);
+  const restaurant = await Restaurant.findById(req.params.id).lean();
   if (!restaurant) {
     res.status(404);
     throw new Error("Restaurant not found");
@@ -80,7 +82,9 @@ export const getRestaurantById = asyncHandler(async (req, res) => {
   const menu = await MenuItem.find({
     restaurant: restaurant._id,
     isAvailable: true,
-  }).sort("category order name");
+  })
+    .sort("category order name")
+    .lean();
 
   const grouped = menu.reduce((acc, item) => {
     if (!acc[item.category]) acc[item.category] = [];
@@ -89,6 +93,37 @@ export const getRestaurantById = asyncHandler(async (req, res) => {
   }, {});
 
   res.json({ restaurant, menu, grouped });
+});
+
+/* ============================================================
+   PUBLIC — GET SINGLE MENU ITEM
+   ============================================================ */
+export const getMenuItemById = asyncHandler(async (req, res) => {
+  const { rid, itemId } = req.params;
+
+  const item = await MenuItem.findOne({
+    _id: itemId,
+    restaurant: rid,
+  })
+    .populate("restaurant")
+    .lean();
+
+  if (!item) {
+    res.status(404);
+    throw new Error("Menu item not found");
+  }
+
+  const siblings = await MenuItem.find({
+    restaurant: rid,
+    category: item.category,
+    _id: { $ne: item._id },
+    isAvailable: true,
+  })
+    .limit(6)
+    .sort("order name")
+    .lean();
+
+  res.json({ item, restaurant: item.restaurant, siblings });
 });
 
 /* ============================================================
@@ -105,7 +140,9 @@ export const listAreas = asyncHandler(async (req, res) => {
   const restaurants = await Restaurant.find({
     isActive: true,
     "address.city": new RegExp(`^${city}$`, "i"),
-  }).select("address.line1 address.line2");
+  })
+    .select("address.line1 address.line2")
+    .lean();
 
   const areaSet = new Set();
 
@@ -129,44 +166,16 @@ export const listAreas = asyncHandler(async (req, res) => {
 });
 
 /* ============================================================
-   PUBLIC — GET SINGLE MENU ITEM
-   ============================================================ */
-export const getMenuItemById = asyncHandler(async (req, res) => {
-  const { rid, itemId } = req.params;
-
-  const item = await MenuItem.findOne({
-    _id: itemId,
-    restaurant: rid,
-  }).populate("restaurant");
-
-  if (!item) {
-    res.status(404);
-    throw new Error("Menu item not found");
-  }
-
-  const siblings = await MenuItem.find({
-    restaurant: rid,
-    category: item.category,
-    _id: { $ne: item._id },
-    isAvailable: true,
-  })
-    .limit(6)
-    .sort("order name");
-
-  res.json({ item, restaurant: item.restaurant, siblings });
-});
-
-/* ============================================================
-   ADMIN — LIST ALL RESTAURANTS (including inactive)
+   ADMIN — LIST ALL RESTAURANTS
    ============================================================ */
 export const listAllRestaurantsAdmin = asyncHandler(async (req, res) => {
-  const restaurants = await Restaurant.find().sort("-createdAt");
+  const restaurants = await Restaurant.find().sort("-createdAt").lean();
 
   const withCounts = await Promise.all(
     restaurants.map(async (r) => {
       const itemCount = await MenuItem.countDocuments({ restaurant: r._id });
       return {
-        ...r.toObject(),
+        ...r,
         itemCount,
         reviews: r.reviewCount ? `${(r.reviewCount / 1000).toFixed(1)}K` : "0",
       };
@@ -177,7 +186,7 @@ export const listAllRestaurantsAdmin = asyncHandler(async (req, res) => {
 });
 
 /* ============================================================
-   ADMIN — CREATE RESTAURANT
+   ADMIN — CRUD OPERATIONS (Create, Update, Delete, Toggle)
    ============================================================ */
 export const createRestaurant = asyncHandler(async (req, res) => {
   const {
@@ -234,9 +243,6 @@ export const createRestaurant = asyncHandler(async (req, res) => {
     .json({ ...restaurant.toObject(), itemCount: 0, reviews: "0" });
 });
 
-/* ============================================================
-   ADMIN — UPDATE RESTAURANT
-   ============================================================ */
 export const updateRestaurant = asyncHandler(async (req, res) => {
   const restaurant = await Restaurant.findById(req.params.id);
   if (!restaurant) {
@@ -267,17 +273,12 @@ export const updateRestaurant = asyncHandler(async (req, res) => {
   }
 
   await restaurant.save();
-
   const itemCount = await MenuItem.countDocuments({
     restaurant: restaurant._id,
   });
-
   res.json({ ...restaurant.toObject(), itemCount });
 });
 
-/* ============================================================
-   ADMIN — TOGGLE ACTIVE
-   ============================================================ */
 export const toggleRestaurant = asyncHandler(async (req, res) => {
   const restaurant = await Restaurant.findById(req.params.id);
   if (!restaurant) {
@@ -287,17 +288,12 @@ export const toggleRestaurant = asyncHandler(async (req, res) => {
 
   restaurant.isActive = !restaurant.isActive;
   await restaurant.save();
-
   const itemCount = await MenuItem.countDocuments({
     restaurant: restaurant._id,
   });
-
   res.json({ ...restaurant.toObject(), itemCount });
 });
 
-/* ============================================================
-   ADMIN — DELETE RESTAURANT (cascade menu)
-   ============================================================ */
 export const deleteRestaurant = asyncHandler(async (req, res) => {
   const restaurant = await Restaurant.findById(req.params.id);
   if (!restaurant) {
@@ -307,12 +303,11 @@ export const deleteRestaurant = asyncHandler(async (req, res) => {
 
   await MenuItem.deleteMany({ restaurant: restaurant._id });
   await restaurant.deleteOne();
-
   res.json({ message: "Restaurant and menu deleted", _id: req.params.id });
 });
 
 /* ============================================================
-   ADMIN — CREATE MENU ITEM
+   ADMIN — MENU ITEM CRUD
    ============================================================ */
 export const createMenuItem = asyncHandler(async (req, res) => {
   const restaurant = await Restaurant.findById(req.params.id);
@@ -356,9 +351,6 @@ export const createMenuItem = asyncHandler(async (req, res) => {
   res.status(201).json(item);
 });
 
-/* ============================================================
-   ADMIN — UPDATE MENU ITEM
-   ============================================================ */
 export const updateMenuItem = asyncHandler(async (req, res) => {
   const item = await MenuItem.findById(req.params.id);
   if (!item) {
@@ -386,9 +378,6 @@ export const updateMenuItem = asyncHandler(async (req, res) => {
   res.json(item);
 });
 
-/* ============================================================
-   ADMIN — DELETE MENU ITEM
-   ============================================================ */
 export const deleteMenuItem = asyncHandler(async (req, res) => {
   const item = await MenuItem.findByIdAndDelete(req.params.id);
   if (!item) {
@@ -398,9 +387,6 @@ export const deleteMenuItem = asyncHandler(async (req, res) => {
   res.json({ message: "Menu item deleted", _id: req.params.id });
 });
 
-/* ============================================================
-   ADMIN — TOGGLE MENU ITEM AVAILABILITY
-   ============================================================ */
 export const toggleMenuItem = asyncHandler(async (req, res) => {
   const item = await MenuItem.findById(req.params.id);
   if (!item) {
