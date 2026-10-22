@@ -2,14 +2,12 @@
  * ============================================================
  * MULTER UPLOAD MIDDLEWARE (Memory Storage for Cloudinary)
  * ============================================================
- * Holds the image in RAM temporarily so we can stream it to Cloudinary.
- * ============================================================
  */
 
 import multer from "multer";
 import path from "path";
 
-/* ---------- Memory Storage engine ---------- */
+/* ---------- Memory Storage ---------- */
 const storage = multer.memoryStorage();
 
 /* ---------- File filter ---------- */
@@ -25,9 +23,12 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-/* ---------- Export upload middleware ---------- */
+/* ---------- Export Base Upload ---------- */
 export const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
   fileFilter,
 });
+
+/* ---------- Export Avatar Upload (Alias) ---------- */
+export const avatarUpload = upload;
