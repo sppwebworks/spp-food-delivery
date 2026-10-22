@@ -229,7 +229,7 @@ const Checkout = () => {
           amount: data.amount,
           currency: data.currency,
           order_id: data.razorpayOrderId,
-          name: "FoodieApp",
+          name: "SPP FoodieApp",
           description: `Order #${orderId.slice(-6).toUpperCase()}`,
           handler: async (response) => {
             try {

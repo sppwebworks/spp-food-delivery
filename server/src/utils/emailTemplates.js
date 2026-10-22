@@ -5,7 +5,7 @@
  */
 
 const BRAND_COLOR = "#fc8019";
-const APP_NAME = "FoodieApp";
+const APP_NAME = "SPP FoodieApp";
 const APP_URL = process.env.CLIENT_URL || "http://localhost:5173";
 
 /* ---------- Base layout wrapper ---------- */

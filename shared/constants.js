@@ -186,7 +186,7 @@ export const DELIVERY_TIME_OPTIONS = [
    APP CONFIG
    ============================================================ */
 export const APP_CONFIG = {
-  name: "FoodieApp",
+  name: "SPP FoodieApp",
   tagline: "Good Food. Great Mood.",
   currency: "INR",
   currencySymbol: "₹",

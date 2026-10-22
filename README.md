@@ -1,4 +1,4 @@
-# 🍽️ FoodieApp - Full Stack Food Delivery Platform
+# 🍽️ SPP FoodieApp - Full Stack Food Delivery Platform
 
 A production-ready, real-time food delivery application built with the MERN stack.
 

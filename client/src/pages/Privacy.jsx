@@ -60,7 +60,7 @@ const Privacy = () => (
       {
         heading: "7. Children's Privacy",
         body: [
-          "FoodieApp is not intended for users under 18. We do not knowingly collect data from minors.",
+          "SPP FoodieApp is not intended for users under 18. We do not knowingly collect data from minors.",
         ],
       },
       {

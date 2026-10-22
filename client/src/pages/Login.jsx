@@ -6,7 +6,7 @@
  * Design:
  *   ┌──────────────────────────────┐
  *   │         🍽️                    │
- *   │     Welcome to FoodieApp      │
+ *   │     Welcome to SPP FoodieApp      │
  *   │  Sign in to continue ordering │
  *   │                               │
  *   │  [ Email                    ] │

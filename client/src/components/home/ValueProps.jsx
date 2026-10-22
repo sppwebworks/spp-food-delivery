@@ -35,7 +35,7 @@ const ValueProps = () => (
   <section className="value-props">
     <div className="section-header">
       <div>
-        <h2 className="section-title">Why FoodieApp?</h2>
+        <h2 className="section-title">Why SPP FoodieApp?</h2>
         <p className="section-subtitle">
           Trusted by over a million hungry customers
         </p>

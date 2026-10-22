@@ -1,7 +1,7 @@
-# FoodieApp — Architecture
+# SPP FoodieApp — Architecture
 
 ## Overview
-FoodieApp is a modern, scalable food delivery platform built as a monorepo containing three distinct applications. It uses a decoupled architecture where the frontend and admin panel are separate React applications sharing a single Express backend.
+SPP FoodieApp is a modern, scalable food delivery platform built as a monorepo containing three distinct applications. It uses a decoupled architecture where the frontend and admin panel are separate React applications sharing a single Express backend.
 
 | App | Tech Stack | Port (Dev) | Purpose |
 |---|---|---|---|

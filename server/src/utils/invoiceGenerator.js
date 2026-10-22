@@ -26,7 +26,7 @@ export const generateInvoice = (order, user) => {
     .fontSize(24)
     .fillColor(PRIMARY)
     .font("Helvetica-Bold")
-    .text("🍽️  FoodieApp", MARGIN, 40);
+    .text("🍽️ SPP FoodieApp", MARGIN, 40);
   doc
     .fontSize(9)
     .fillColor(MUTED)
@@ -270,7 +270,7 @@ export const generateInvoice = (order, user) => {
     .fontSize(8)
     .fillColor(MUTED)
     .font("Helvetica")
-    .text("Thank you for ordering from FoodieApp!", MARGIN, footerY + 12, {
+    .text("Thank you for ordering from SPP FoodieApp!", MARGIN, footerY + 12, {
       width: CONTENT_W,
       align: "center",
     })
@@ -280,10 +280,15 @@ export const generateInvoice = (order, user) => {
       footerY + 26,
       { width: CONTENT_W, align: "center" },
     )
-    .text("support@foodieapp.com  ·  www.foodieapp.com", MARGIN, footerY + 40, {
-      width: CONTENT_W,
-      align: "center",
-    });
+    .text(
+      "support@sppfoodieapp.com  ·  www.sppfoodieapp.com",
+      MARGIN,
+      footerY + 40,
+      {
+        width: CONTENT_W,
+        align: "center",
+      },
+    );
 
   return doc;
 };

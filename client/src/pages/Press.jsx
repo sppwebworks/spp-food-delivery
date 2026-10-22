@@ -5,12 +5,12 @@ const Press = () => (
     eyebrow="MEDIA & PRESS"
     icon="📰"
     title="Press & Media"
-    subtitle="Everything journalists need to write about FoodieApp."
+    subtitle="Everything journalists need to write about SPP FoodieApp."
     sections={[
       {
-        heading: "About FoodieApp",
+        heading: "About SPP FoodieApp",
         body: [
-          "FoodieApp is India's fastest-growing food delivery platform, connecting millions of customers with over 12,000 partner restaurants across 50+ cities.",
+          "SPP FoodieApp is India's fastest-growing food delivery platform, connecting millions of customers with over 12,000 partner restaurants across 50+ cities.",
           "Founded in 2019 in Bangalore, we've delivered over 50 million orders with an average rating of 4.8 stars.",
         ],
       },
@@ -27,10 +27,10 @@ const Press = () => (
       {
         heading: "Recent coverage",
         items: [
-          "TechCrunch — 'FoodieApp raises $50M Series B to expand into tier-2 cities'",
+          "TechCrunch — 'SPP FoodieApp raises $50M Series B to expand into tier-2 cities'",
           "YourStory — 'How three friends built India's fastest food delivery app'",
-          "Economic Times — 'Food delivery wars: FoodieApp's strategy to win'",
-          "Forbes India — 'The 30 under 30 changemakers behind FoodieApp'",
+          "Economic Times — 'Food delivery wars: SPP FoodieApp's strategy to win'",
+          "Forbes India — 'The 30 under 30 changemakers behind SPP FoodieApp'",
         ],
       },
       {

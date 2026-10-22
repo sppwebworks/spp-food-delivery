@@ -123,7 +123,7 @@ const Navbar = () => {
       <div className="navbar-inner">
         <Link to="/" className="navbar-logo">
           <span className="navbar-logo-icon">🍽️</span>
-          <span className="navbar-logo-text">FoodieApp</span>
+          <span className="navbar-logo-text">SPP FoodieApp</span>
         </Link>
 
         <nav className="nav-links">

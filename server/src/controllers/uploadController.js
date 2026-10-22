@@ -20,7 +20,7 @@ export const uploadImage = asyncHandler(async (req, res) => {
     // ✅ Upload the file buffer to Cloudinary
     const result = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
-        { folder: "foodieapp" }, // Optional: saves in a 'foodieapp' folder
+        { folder: "spp-foodieapp" }, // Optional: saves in a 'spp-foodieapp' folder
         (error, result) => {
           if (error) reject(error);
           else resolve(result);

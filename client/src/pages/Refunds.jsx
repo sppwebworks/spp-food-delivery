@@ -42,7 +42,7 @@ const Refunds = () => (
           "UPI / Netbanking — 3 to 5 business days",
           "Credit / Debit Card — 5 to 7 business days",
           "Wallet — within 24 hours",
-          "FoodieApp Credits — instant",
+          "SPP FoodieApp Credits — instant",
         ],
         note: "Timelines are set by your bank or payment provider and may vary.",
       },

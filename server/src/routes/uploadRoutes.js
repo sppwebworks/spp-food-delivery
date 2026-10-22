@@ -33,7 +33,7 @@ router.post(
       // ✅ Upload the buffer to Cloudinary
       const result = await new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
-          { folder: "foodieapp" }, // Optional: organizes images in a folder
+          { folder: "spp-foodieapp" }, // Optional: organizes images in a folder
           (error, result) => {
             if (error) reject(error);
             else resolve(result);

@@ -4,7 +4,7 @@ const Blog = () => (
   <InfoPage
     eyebrow="STORIES & INSIGHTS"
     icon="✍️"
-    title="The FoodieApp Blog"
+    title="The SPP FoodieApp Blog"
     subtitle="Recipes, restaurant stories, and behind-the-scenes from the food delivery industry."
     sections={[
       {
@@ -13,7 +13,7 @@ const Blog = () => (
           "The 10 most-ordered dishes in Bangalore this month",
           "How we cut average delivery time by 4 minutes",
           "The rise of cloud kitchens — what it means for customers",
-          "A day in the life of a FoodieApp delivery partner",
+          "A day in the life of a SPP FoodieApp delivery partner",
         ],
       },
       {

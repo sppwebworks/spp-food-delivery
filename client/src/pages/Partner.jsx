@@ -4,7 +4,7 @@ const Partner = () => (
   <InfoPage
     eyebrow="FOR RESTAURANTS"
     icon="🤝"
-    title="Partner with FoodieApp"
+    title="Partner with SPP FoodieApp"
     subtitle="Grow your restaurant with India's fastest-growing food delivery platform."
     sections={[
       {

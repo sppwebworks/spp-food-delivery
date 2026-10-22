@@ -10,7 +10,7 @@ const Terms = () => (
       {
         heading: "1. Acceptance of Terms",
         body: [
-          "By accessing or using FoodieApp, you agree to be bound by these Terms & Conditions. If you do not agree, please do not use the platform.",
+          "By accessing or using SPP FoodieApp, you agree to be bound by these Terms & Conditions. If you do not agree, please do not use the platform.",
         ],
       },
       {
@@ -23,7 +23,7 @@ const Terms = () => (
       {
         heading: "3. Ordering & Payment",
         body: [
-          "All orders placed through FoodieApp are subject to acceptance by the partner restaurant. We reserve the right to refuse or cancel any order.",
+          "All orders placed through SPP FoodieApp are subject to acceptance by the partner restaurant. We reserve the right to refuse or cancel any order.",
           "Payment must be completed at the time of ordering for prepaid methods. Cash on Delivery is available for eligible orders.",
         ],
       },
@@ -53,7 +53,7 @@ const Terms = () => (
       {
         heading: "7. Limitation of Liability",
         body: [
-          "FoodieApp acts as a marketplace connecting customers with restaurants and delivery partners. We are not liable for the quality, safety, or legality of food prepared by partner restaurants.",
+          "SPP FoodieApp acts as a marketplace connecting customers with restaurants and delivery partners. We are not liable for the quality, safety, or legality of food prepared by partner restaurants.",
         ],
       },
       {

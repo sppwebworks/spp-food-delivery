@@ -1,4 +1,4 @@
-# FoodieApp — Complete API Reference
+# SPP FoodieApp — Complete API Reference
 
 **Base URL (Local):** `http://localhost:5000/api`  
 **Base URL (Production):** `https://api.yourdomain.com/api`

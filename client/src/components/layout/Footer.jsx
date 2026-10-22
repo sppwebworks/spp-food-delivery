@@ -82,7 +82,7 @@ const Footer = () => {
         <div className="footer-brand">
           <div className="footer-logo">
             <span style={{ fontSize: 26 }}>🍽️</span>
-            <span>FoodieApp</span>
+            <span>SPP FoodieApp</span>
           </div>
 
           <p>
@@ -171,7 +171,7 @@ const Footer = () => {
       {/* ---------- BOTTOM BAR ---------- */}
       <div className="footer-bottom">
         <span className="footer-copyright">
-          © {new Date().getFullYear()} FoodieApp. Built with ❤️ using React +
+          © {new Date().getFullYear()} SPP FoodieApp. Built with ❤️ using React +
           MERN
         </span>
 

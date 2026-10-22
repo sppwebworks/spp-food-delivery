@@ -5,7 +5,7 @@ const Licenses = () => (
     eyebrow="LEGAL"
     icon="📋"
     title="Licenses & Attributions"
-    subtitle="Open-source software and content licenses used in FoodieApp."
+    subtitle="Open-source software and content licenses used in SPP FoodieApp."
     sections={[
       {
         heading: "Our licenses",
@@ -39,7 +39,7 @@ const Licenses = () => (
       {
         heading: "Trademarks",
         body: [
-          "FoodieApp, the fork-and-plate logo, and related marks are trademarks of FoodieApp Technologies Pvt. Ltd. Unauthorized use is prohibited.",
+          "SPP FoodieApp, the fork-and-plate logo, and related marks are trademarks of SPP FoodieApp Technologies Pvt. Ltd. Unauthorized use is prohibited.",
         ],
       },
       {

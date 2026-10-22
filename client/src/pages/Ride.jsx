@@ -4,7 +4,7 @@ const Ride = () => (
   <InfoPage
     eyebrow="FOR DELIVERY PARTNERS"
     icon="🛵"
-    title="Ride with FoodieApp"
+    title="Ride with SPP FoodieApp"
     subtitle="Earn on your own schedule — bike, cycle, or walk. Your choice."
     sections={[
       {
@@ -31,7 +31,7 @@ const Ride = () => (
       {
         heading: "How to join",
         body: [
-          "Step 1: Download the FoodieApp Rider app and register with your phone number.",
+          "Step 1: Download the SPP FoodieApp Rider app and register with your phone number.",
           "Step 2: Upload your documents — verification takes under 24 hours.",
           "Step 3: Complete a short training session at your nearest hub.",
           "Step 4: Start accepting orders and earn.",

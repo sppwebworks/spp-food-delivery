@@ -4,7 +4,7 @@ const Careers = () => (
   <InfoPage
     eyebrow="JOIN THE TEAM"
     icon="💼"
-    title="Careers at FoodieApp"
+    title="Careers at SPP FoodieApp"
     subtitle="We're building the future of food delivery — and we're hiring."
     sections={[
       {

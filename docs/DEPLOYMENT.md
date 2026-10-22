@@ -1,6 +1,6 @@
-# FoodieApp — Deployment Guide
+# SPP FoodieApp — Deployment Guide
 
-This guide walks you through deploying the complete FoodieApp platform. The project is a monorepo with three parts that need to be deployed separately:
+This guide walks you through deploying the complete SPP FoodieApp platform. The project is a monorepo with three parts that need to be deployed separately:
 1. **Customer Client** (`/client`) — React SPA
 2. **Admin Panel** (`/admin`) — React SPA
 3. **Backend API** (`/server`) — Node.js Express Server
@@ -35,7 +35,7 @@ Since the app sends welcome emails on newsletter subscription, you need an SMTP 
 1. Go to your Google Account → **Security**.
 2. Ensure **2-Step Verification** is turned ON.
 3. Search for **App Passwords** in the Google Account search bar.
-4. Create a new app password (name it "FoodieApp").
+4. Create a new app password (name it "SPP FoodieApp").
 5. Copy the 16-character password (e.g., `abcd efgh ijkl mnop`). You will need this for the backend environment variables.
 
 ---
@@ -64,7 +64,7 @@ Since the app sends welcome emails on newsletter subscription, you need an SMTP 
    
    # Email Config
    EMAIL_DEV_MODE=false
-   EMAIL_FROM=FoodieApp <your_email@gmail.com>
+   EMAIL_FROM=SPP FoodieApp <your_email@gmail.com>
    ADMIN_EMAIL=your_email@gmail.com
    SMTP_HOST=smtp.gmail.com
    SMTP_PORT=587
@@ -172,7 +172,7 @@ Verify the deployment by checking each item:
 □ Database: Click "Restaurants" in the Admin panel. Verify the 8 seeded restaurants appear.
 □ Order Flow: In the Customer app, add an item to cart, login, and place a COD order.
 □ Real-time: Change the order status in the Admin panel. The Customer app should update instantly (if viewing the order details).
-□ Newsletter: Scroll to the customer footer, enter your email, and click subscribe. Check your inbox (and spam folder) for the "Welcome to FoodieApp" email.
+□ Newsletter: Scroll to the customer footer, enter your email, and click subscribe. Check your inbox (and spam folder) for the "Welcome to SPP FoodieApp" email.
 Troubleshooting Common Errors
 1. Network Error or CORS blocked
 Cause: Backend CLIENT_URL or ADMIN_URL doesn't match the Vercel domains exactly.
@@ -191,13 +191,13 @@ Cause: You are on Render's free tier, which spins down after 15 minutes of inact
 Fix: Upgrade to the $7/month Render plan to keep it always-on, or set up a cron job (like UptimeRobot) to ping /api/health every 14 minutes.
 
 Custom Domains (Optional)
-If you bought a domain (e.g., foodieapp.com):
+If you bought a domain (e.g., sppfoodieapp.com):
 
-Client: In Vercel → Settings → Domains, add app.foodieapp.com. Update your DNS with the CNAME provided.
+Client: In Vercel → Settings → Domains, add app.sppfoodieapp.com. Update your DNS with the CNAME provided.
 
-Admin: In Vercel → Settings → Domains, add admin.foodieapp.com. Update DNS.
+Admin: In Vercel → Settings → Domains, add admin.sppfoodieapp.com. Update DNS.
 
-Backend: In Render → Settings → Custom Domain, add api.foodieapp.com. Update DNS.
+Backend: In Render → Settings → Custom Domain, add api.sppfoodieapp.com. Update DNS.
 
 Update Env Vars: Update CLIENT_URL, ADMIN_URL, and the VITE_API_URL (in both Vercel projects) to use the new custom domains. Redeploy everything.
 
