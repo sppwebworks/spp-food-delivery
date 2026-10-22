@@ -1,42 +1,33 @@
+/**
+ * ============================================================
+ * MULTER UPLOAD MIDDLEWARE (Memory Storage for Cloudinary)
+ * ============================================================
+ * Holds the image in RAM temporarily so we can stream it to Cloudinary.
+ * ============================================================
+ */
+
 import multer from "multer";
 import path from "path";
-import fs from "fs";
 
-// Ensure the uploads directory exists
-const uploadDir = "uploads/avatars";
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+/* ---------- Memory Storage engine ---------- */
+const storage = multer.memoryStorage();
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(
-      null,
-      `avatar-${req.user._id}-${uniqueSuffix}${path.extname(file.originalname)}`,
-    );
-  },
-});
-
+/* ---------- File filter ---------- */
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|webp/;
-  const extname = allowedTypes.test(
-    path.extname(file.originalname).toLowerCase(),
-  );
-  const mimetype = allowedTypes.test(file.mimetype);
+  const allowed = /jpeg|jpg|png|webp|gif/;
+  const ext = allowed.test(path.extname(file.originalname).toLowerCase());
+  const mime = allowed.test(file.mimetype);
 
-  if (extname && mimetype) {
+  if (ext && mime) {
     cb(null, true);
   } else {
-    cb(new Error("Only image files (jpg, png, webp) are allowed"));
+    cb(new Error("Only image files (jpg, png, webp, gif) are allowed"));
   }
 };
 
-export const avatarUpload = multer({
+/* ---------- Export upload middleware ---------- */
+export const upload = multer({
   storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
   fileFilter,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB max
 });

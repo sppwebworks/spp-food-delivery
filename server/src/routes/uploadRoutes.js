@@ -1,48 +1,16 @@
 import express from "express";
-import multer from "multer";
-import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
+import asyncHandler from "express-async-handler";
+import cloudinary from "../config/cloudinary.js";
+import { upload } from "../middleware/uploadMiddleware.js";
 import { protect } from "../middleware/authMiddleware.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 const router = express.Router();
-
-// Ensure uploads folder exists
-const uploadDir = path.join(__dirname, "..", "..", "uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Multer storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const ext = path.extname(file.originalname);
-    cb(null, `${unique}${ext}`);
-  },
-});
-
-// Filter: only images
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith("image/")) cb(null, true);
-  else cb(new Error("Only image files are allowed"));
-};
-
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
-});
 
 /**
  * POST /api/upload
  * Protected — requires admin auth
  * Body: multipart/form-data with field "image"
- * Returns: { url: "/uploads/1697...-342129.jpg" }
+ * Returns: { url: "https://res.cloudinary.com/..." }
  */
 router.post(
   "/",
@@ -55,18 +23,38 @@ router.post(
     next();
   },
   upload.single("image"),
-  (req, res) => {
+  asyncHandler(async (req, res) => {
     if (!req.file) {
       res.status(400);
       throw new Error("No file uploaded");
     }
-    res.json({
-      url: `/uploads/${req.file.filename}`,
-      filename: req.file.filename,
-      size: req.file.size,
-      mimetype: req.file.mimetype,
-    });
-  },
+
+    try {
+      // ✅ Upload the buffer to Cloudinary
+      const result = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "foodieapp" }, // Optional: organizes images in a folder
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          },
+        );
+        stream.end(req.file.buffer);
+      });
+
+      // ✅ Return the permanent Cloudinary URL
+      res.status(201).json({
+        url: result.secure_url,
+        public_id: result.public_id,
+        size: req.file.size,
+        mimetype: req.file.mimetype,
+      });
+    } catch (err) {
+      console.error("Cloudinary upload error:", err);
+      res.status(500);
+      throw new Error("Failed to upload image");
+    }
+  }),
 );
 
 export default router;
