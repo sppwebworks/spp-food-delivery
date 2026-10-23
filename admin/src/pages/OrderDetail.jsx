@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchAdminOrder } from "../features/orders/adminOrdersSlice";
 import { formatCurrency, formatDate } from "../utils/format";
 import { useToast } from "../context/ToastContext";
+import api from "../services/api";
 
 const OrderDetail = () => {
   const { id } = useParams();
@@ -11,9 +12,49 @@ const OrderDetail = () => {
   const { showToast } = useToast();
   const { current: order, loading } = useSelector((s) => s.adminOrders);
 
+  const [availableRiders, setAvailableRiders] = useState([]);
+  const [selectedRiderId, setSelectedRiderId] = useState("");
+  const [assigning, setAssigning] = useState(false);
+
   useEffect(() => {
     dispatch(fetchAdminOrder(id));
   }, [dispatch, id]);
+
+  useEffect(() => {
+    if (!order || order.deliveryPartner) return;
+    if (
+      !["pending", "confirmed", "preparing", "ready_for_pickup"].includes(
+        order.status,
+      )
+    )
+      return;
+
+    const loadRiders = async () => {
+      try {
+        const { data } = await api.get(
+          `/admin/orders/${order._id}/available-riders`,
+        );
+        setAvailableRiders(data.riders || []);
+      } catch (_) {}
+    };
+    loadRiders();
+  }, [order]);
+
+  const handleAssignRider = async () => {
+    if (!selectedRiderId) return;
+    setAssigning(true);
+    try {
+      await api.put(`/admin/orders/${order._id}/assign-rider`, {
+        riderId: selectedRiderId,
+      });
+      showToast("Rider assigned and OTP generated", "success");
+      dispatch(fetchAdminOrder(id));
+    } catch (err) {
+      showToast(err.response?.data?.message || "Assignment failed", "error");
+    } finally {
+      setAssigning(false);
+    }
+  };
 
   if (loading || !order) {
     return (
@@ -35,7 +76,6 @@ const OrderDetail = () => {
       </header>
 
       <div className="admin-detail-grid">
-        {/* Customer Info */}
         <div className="admin-card">
           <h2>Customer</h2>
           <p>
@@ -45,7 +85,6 @@ const OrderDetail = () => {
           <p>📞 {order.phone}</p>
         </div>
 
-        {/* Delivery Address */}
         <div className="admin-card">
           <h2>Delivery Address</h2>
           <p>{order.address.line1}</p>
@@ -55,7 +94,6 @@ const OrderDetail = () => {
           </p>
         </div>
 
-        {/* Payment Info */}
         <div className="admin-card">
           <h2>Payment</h2>
           <p>
@@ -70,7 +108,77 @@ const OrderDetail = () => {
         </div>
       </div>
 
-      {/* Items */}
+      {/* RIDER ASSIGNMENT */}
+      <div className="admin-card">
+        <h2>🛵 Delivery Partner</h2>
+
+        {order.deliveryPartner ? (
+          <div>
+            <p>
+              <strong>{order.deliveryPartner.user?.name || "Assigned"}</strong>
+            </p>
+            <p>📞 {order.deliveryPartner.phone}</p>
+            <p>Status: {order.status.replace(/_/g, " ")}</p>
+            {order.deliveryOtp && (
+              <p
+                style={{
+                  marginTop: 12,
+                  padding: 12,
+                  background: "#ecfdf5",
+                  borderRadius: 8,
+                }}
+              >
+                <strong>OTP for handover:</strong>{" "}
+                <span
+                  style={{
+                    fontFamily: "monospace",
+                    fontSize: 20,
+                    letterSpacing: 4,
+                    color: "#065f46",
+                  }}
+                >
+                  {order.deliveryOtp}
+                </span>
+              </p>
+            )}
+          </div>
+        ) : ["pending", "confirmed", "preparing", "ready_for_pickup"].includes(
+            order.status,
+          ) ? (
+          <div style={{ display: "flex", gap: 8 }}>
+            <select
+              value={selectedRiderId}
+              onChange={(e) => setSelectedRiderId(e.target.value)}
+              style={{
+                flex: 1,
+                padding: 10,
+                borderRadius: 8,
+                border: "1px solid #e9e9eb",
+              }}
+            >
+              <option value="">Choose an available rider…</option>
+              {availableRiders.map((r) => (
+                <option key={r._id} value={r._id}>
+                  {r.user?.name} · {r.phone} · {r.totalDeliveries} deliveries
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={handleAssignRider}
+              disabled={!selectedRiderId || assigning}
+              className="admin-btn-primary"
+              style={{ padding: "10px 20px" }}
+            >
+              {assigning ? "Assigning…" : "Assign Rider"}
+            </button>
+          </div>
+        ) : (
+          <p style={{ color: "#93959f" }}>
+            No rider assignable at this order stage.
+          </p>
+        )}
+      </div>
+
       <div className="admin-card">
         <h2>Items</h2>
         <table className="admin-table">
@@ -95,7 +203,6 @@ const OrderDetail = () => {
         </table>
       </div>
 
-      {/* Bill Summary */}
       <div className="admin-card">
         <h2>Bill Summary</h2>
         <div className="admin-bill">

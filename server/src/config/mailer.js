@@ -41,7 +41,8 @@ if (!isDevMode) {
    PUBLIC API — sendEmail
    ============================================================ */
 export const sendEmail = async ({ to, subject, html, text = "" }) => {
-  const from = process.env.EMAIL_FROM || "SPP FoodieApp <noreply@sppfoodieapp.local>";
+  const from =
+    process.env.EMAIL_FROM || "SPP FoodieApp <noreply@sppfoodieapp.local>";
 
   /* ---------- DEV MODE — log and return ---------- */
   if (isDevMode) {

@@ -59,7 +59,7 @@ const orderSchema = new mongoose.Schema(
     paymentId: { type: String, default: "" },
     paymentIntentId: { type: String, default: "" },
     razorpayOrderId: { type: String, default: "" },
-    phonepeMerchantOrderId: { type: String, default: "" }, // ✅ Added
+    phonepeMerchantOrderId: { type: String, default: "" },
     refundId: { type: String, default: null },
     refundAmount: { type: Number, default: 0 },
     refundStatus: {
@@ -68,12 +68,27 @@ const orderSchema = new mongoose.Schema(
       default: "none",
     },
     refundedAt: { type: Date, default: null },
+
+    /* DELIVERY PARTNER */
+    deliveryPartner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "DeliveryPartner",
+      default: null,
+      index: true,
+    },
+    assignedAt: { type: Date, default: null },
+    pickedUpAt: { type: Date, default: null },
+    deliveredAt: { type: Date, default: null },
+    deliveryOtp: { type: String, default: null },
+    deliveryOtpVerified: { type: Boolean, default: false },
+
     status: {
       type: String,
       enum: [
         "pending",
         "confirmed",
         "preparing",
+        "ready_for_pickup",
         "out_for_delivery",
         "delivered",
         "cancelled",

@@ -1,6 +1,8 @@
 /**
+ * ============================================================
  * Socket.IO singleton — allows controllers to emit events
  * without needing a direct reference to the io instance.
+ * ============================================================
  */
 
 let io;

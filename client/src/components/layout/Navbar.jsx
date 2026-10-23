@@ -320,11 +320,27 @@ const Navbar = () => {
               ref={profileRef}
               style={{ position: "relative" }}
             >
+              {/* ✅ FIXED AVATAR STYLING */}
               <button
                 className="profile-avatar"
                 onClick={() => setProfileOpen((o) => !o)}
                 aria-label="Profile menu"
-                style={{ overflow: "hidden", padding: 0 }}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: "50%",
+                  background: "var(--primary-light, #fff0e6)",
+                  color: "var(--primary, #fc8019)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 800,
+                  fontSize: 16,
+                  overflow: "hidden",
+                  padding: 0,
+                  border: "none",
+                  cursor: "pointer",
+                }}
               >
                 {user.avatar ? (
                   <img
@@ -337,7 +353,7 @@ const Navbar = () => {
                     }}
                   />
                 ) : (
-                  user.name?.[0]?.toUpperCase() || "?"
+                  user.name?.[0]?.toUpperCase() || "U"
                 )}
               </button>
 

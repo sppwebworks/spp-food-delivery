@@ -29,14 +29,14 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["customer", "admin"],
+      enum: ["customer", "admin", "rider"],
       default: "customer",
     },
     avatar: {
       type: String,
       default: "",
     },
-    // ✅ ADDED: Password Reset Fields
+    // ✅ Password Reset Fields
     resetPasswordToken: String,
     resetPasswordExpire: Date,
   },

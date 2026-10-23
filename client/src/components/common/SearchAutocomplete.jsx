@@ -1,24 +1,3 @@
-/**
- * ============================================================
- * SEARCH AUTOCOMPLETE — Reusable live search
- * ============================================================
- *
- * Props:
- *   variant       "navbar" | "hero" | "page" (controls styling)
- *   placeholder   string
- *   autoFocus     bool
- *   onSelect      (result) => void  — optional
- *   submitOnEnter bool                — default true
- *
- * Behavior:
- *   - Debounced live search (300ms)
- *   - Keyboard nav: ↑ ↓ Enter Esc
- *   - Click-outside closes
- *   - Recent searches stored in localStorage
- *   - Click result → navigates to /restaurants/:id
- * ============================================================
- */
-
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSearchSuggestions } from "../../hooks/useSearchSuggestions";
@@ -80,18 +59,27 @@ const SearchAutocomplete = ({
     if (autoFocus) inputRef.current?.focus();
   }, [autoFocus]);
 
-  // ⌘K / Ctrl+K shortcut — only when variant is navbar
+  // ✅ FIXED: ⌘K / Ctrl+K shortcut using window listener
   useEffect(() => {
     if (variant !== "navbar") return;
-    const handler = (e) => {
+
+    const handleShortcut = (e) => {
+      // Check for Cmd+K (Mac) or Ctrl+K (Windows/Linux)
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        inputRef.current?.focus();
-        setOpen(true);
+        e.preventDefault(); // Stop browser default (like Firefox search)
+        e.stopPropagation(); // Stop other listeners
+
+        // If input exists, focus it and open dropdown
+        if (inputRef.current) {
+          inputRef.current.focus();
+          setOpen(true);
+        }
       }
     };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
+
+    // Attach to window to ensure it works globally
+    window.addEventListener("keydown", handleShortcut);
+    return () => window.removeEventListener("keydown", handleShortcut);
   }, [variant]);
 
   /* ---------- Save recent ---------- */

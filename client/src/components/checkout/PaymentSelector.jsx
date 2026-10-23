@@ -35,18 +35,18 @@ const PAYMENT_OPTIONS = [
     description: "UPI, Cards, Netbanking, Wallets",
     icon: "🟦",
   },
-  {
-    value: "phonepe",
-    label: "PhonePe",
-    description: "Pay with PhonePe UPI",
-    icon: "📱",
-  },
-  {
-    value: "upi",
-    label: "Other UPI Apps",
-    description: "Google Pay, Paytm, BHIM",
-    icon: "🇮🇳",
-  },
+  // {
+  //   value: "phonepe",
+  //   label: "PhonePe",
+  //   description: "Pay with PhonePe UPI",
+  //   icon: "📱",
+  // },
+  // {
+  //   value: "upi",
+  //   label: "Other UPI Apps",
+  //   description: "Google Pay, Paytm, BHIM",
+  //   icon: "🇮🇳",
+  // },
 ];
 
 const PaymentSelector = ({ value, onChange }) => {

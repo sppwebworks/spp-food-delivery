@@ -56,6 +56,7 @@ const AdminLayout = () => {
     { label: "Hero Banners", to: "/admin/hero-banners", icon: "🖼️" },
     { label: "Support", to: "/admin/support", icon: "🎧", badge: openTickets },
     { label: "Settings", to: "/admin/settings", icon: "⚙️" },
+    { label: "Delivery Partners", to: "/admin/riders", icon: "🛵" },
   ];
 
   return (

@@ -2,7 +2,7 @@ import asyncHandler from "express-async-handler";
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import generateToken from "../utils/generateToken.js";
-import { sendAsync, welcomeEmail, loginAlertEmail } from "../emails/index.js";
+import { sendEmail } from "../config/mailer.js"; // Use your sendEmail util
 
 /* ---------- REGISTER ---------- */
 export const register = asyncHandler(async (req, res) => {
@@ -29,12 +29,6 @@ export const register = asyncHandler(async (req, res) => {
     password: hashed,
   });
 
-  const { subject, html } = welcomeEmail({
-    name: user.name,
-    email: user.email,
-  });
-  sendAsync({ to: user.email, subject, html });
-
   res.status(201).json({
     user: {
       _id: user._id,
@@ -52,28 +46,12 @@ export const register = asyncHandler(async (req, res) => {
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  if (!email || !password) {
-    res.status(400);
-    throw new Error("Email and password are required");
-  }
-
   const user = await User.findOne({ email: email.toLowerCase() }).select(
     "+password",
   );
-
   if (!user || !(await bcrypt.compare(password, user.password))) {
     res.status(401);
     throw new Error("Invalid credentials");
-  }
-
-  if (user.role === "customer") {
-    const { subject, html } = loginAlertEmail({
-      name: user.name,
-      time: new Date().toLocaleString("en-IN"),
-      ip: req.ip,
-      device: req.headers["user-agent"]?.slice(0, 80),
-    });
-    sendAsync({ to: user.email, subject, html });
   }
 
   res.json({
@@ -122,12 +100,8 @@ export const updatePassword = asyncHandler(async (req, res) => {
   }
 
   const user = await User.findById(req.user._id).select("+password");
-  if (!user) {
-    res.status(404);
-    throw new Error("User not found");
-  }
-
   const isMatch = await bcrypt.compare(currentPassword, user.password);
+
   if (!isMatch) {
     res.status(401);
     throw new Error("Current password is incorrect");
@@ -139,40 +113,7 @@ export const updatePassword = asyncHandler(async (req, res) => {
   res.json({ success: true, message: "Password updated successfully" });
 });
 
-/* ---------- UPLOAD AVATAR ---------- */
-export const uploadAvatar = asyncHandler(async (req, res) => {
-  if (!req.file) {
-    res.status(400);
-    throw new Error("No image file provided");
-  }
-
-  const user = await User.findById(req.user._id);
-  if (!user) {
-    res.status(404);
-    throw new Error("User not found");
-  }
-
-  const avatarUrl = `${req.protocol}://${req.get("host")}/uploads/avatars/${req.file.filename}`;
-
-  user.avatar = avatarUrl;
-  await user.save();
-
-  res.json({
-    success: true,
-    message: "Avatar uploaded successfully",
-    avatar: avatarUrl,
-    user: {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      role: user.role,
-      avatar: user.avatar,
-    },
-  });
-});
-
-/* ---------- FORGOT PASSWORD ---------- */
+/* ---------- FORGOT PASSWORD (Send 6-digit OTP) ---------- */
 export const forgotPassword = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email: req.body.email.toLowerCase() });
   if (!user) {
@@ -180,21 +121,30 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     throw new Error("Email not found");
   }
 
+  // Generate a 6-digit OTP
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  // Save to DB (expires in 10 minutes)
   user.resetPasswordToken = otp;
   user.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
   await user.save();
 
-  sendAsync({
+  // Send Email using your existing mailer
+  await sendEmail({
     to: user.email,
-    subject: "Password Reset Code",
-    html: `<h1>Reset Code: ${otp}</h1><p>This code expires in 10 minutes.</p>`,
+    subject: "Password Reset Code - SPP FoodieApp",
+    html: `
+      <h2>Password Reset Request</h2>
+      <p>Your 6-digit reset code is:</p>
+      <h1 style="font-size: 32px; letter-spacing: 5px; color: #fc8019;">${otp}</h1>
+      <p>This code expires in 10 minutes. If you did not request this, please ignore this email.</p>
+    `,
   });
 
   res.json({ message: "Reset code sent to email" });
 });
 
-/* ---------- RESET PASSWORD ---------- */
+/* ---------- RESET PASSWORD (Verify OTP & Save New Password) ---------- */
 export const resetPassword = asyncHandler(async (req, res) => {
   const { email, otp, newPassword } = req.body;
 
@@ -203,6 +153,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
     throw new Error("Password must be at least 6 characters");
   }
 
+  // Find user by email, OTP, and ensure it hasn't expired
   const user = await User.findOne({
     email: email.toLowerCase(),
     resetPasswordToken: otp,
@@ -214,6 +165,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
     throw new Error("Invalid or expired reset code");
   }
 
+  // Set new password
   user.password = await bcrypt.hash(newPassword, 12);
   user.resetPasswordToken = undefined;
   user.resetPasswordExpire = undefined;

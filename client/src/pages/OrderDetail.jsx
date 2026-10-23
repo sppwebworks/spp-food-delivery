@@ -1,9 +1,3 @@
-/**
- * ============================================================
- * ORDER DETAIL PAGE
- * ============================================================
- */
-
 import { useEffect, useState } from "react";
 import { useParams, Link, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,11 +8,50 @@ import { formatCurrency, formatDate } from "../utils/format";
 import { useToast } from "../context/ToastContext";
 import api, { downloadInvoice } from "../services/api";
 import HelpModal from "../components/support/HelpModal";
+import { io } from "socket.io-client";
+
+// ✅ Map Imports
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import L from "leaflet";
+
+// ✅ Fix for missing marker icons
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+});
+
+// ✅ Forces the map to recalculate its size
+const MapSizeInvalidator = () => {
+  const map = useMap();
+  useEffect(() => {
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 500);
+  }, [map]);
+  return null;
+};
+
+// ✅ Smoothly pans to the new location
+const MapUpdater = ({ position }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (position) {
+      map.flyTo(position, map.getZoom(), { animate: true, duration: 1.5 });
+    }
+  }, [position, map]);
+  return null;
+};
 
 const STATUS_STEPS = [
   { key: "pending", label: "Placed", icon: "📝" },
   { key: "confirmed", label: "Confirmed", icon: "✅" },
   { key: "preparing", label: "Preparing", icon: "👨‍🍳" },
+  { key: "ready_for_pickup", label: "Ready", icon: "📦" },
   { key: "out_for_delivery", label: "On the way", icon: "🛵" },
   { key: "delivered", label: "Delivered", icon: "🏠" },
 ];
@@ -36,17 +69,23 @@ const OrderDetail = () => {
   const [hasReviewed, setHasReviewed] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [riderOtp, setRiderOtp] = useState(null);
+
+  const [riderPos, setRiderPos] = useState(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   useEffect(() => {
     dispatch(fetchOrderById(id));
   }, [dispatch, id]);
 
-  // ✅ Stripe Verification
+  useEffect(() => {
+    if (order?.deliveryOtp) setRiderOtp(order.deliveryOtp);
+  }, [order]);
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("paid") !== "1" || params.get("gateway") !== "stripe")
       return;
-
     let cancelled = false;
     const verify = async () => {
       try {
@@ -67,12 +106,10 @@ const OrderDetail = () => {
     };
   }, [id, location.search, dispatch]);
 
-  // ✅ PhonePe Verification
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("paid") !== "1" || params.get("gateway") !== "phonepe")
       return;
-
     let cancelled = false;
     const verify = async () => {
       try {
@@ -92,6 +129,25 @@ const OrderDetail = () => {
       cancelled = true;
     };
   }, [id, location.search, dispatch]);
+
+  useEffect(() => {
+    if (!order) return;
+    const socket = io(
+      import.meta.env.VITE_SOCKET_URL || "http://localhost:5000",
+      {
+        transports: ["websocket"],
+      },
+    );
+    socket.emit("order:track", order._id);
+
+    socket.on("order:rider-assigned", (payload) => setRiderOtp(payload.otp));
+    socket.on("rider:location", ({ lat, lng }) => setRiderPos({ lat, lng }));
+    socket.on("order:status", ({ status }) => {
+      if (status) dispatch(fetchOrderById(order._id));
+    });
+
+    return () => socket.disconnect();
+  }, [order?._id, dispatch]);
 
   const handleCancel = async () => {
     if (
@@ -299,6 +355,101 @@ const OrderDetail = () => {
               {order.refundedAt && ` on ${formatDate(order.refundedAt)}`}. It
               should appear in your account within 5–7 business days.
             </div>
+          )}
+        </div>
+      )}
+
+      {/* 🛵 RIDER TRACKING & OTP & MAP */}
+      {order.deliveryPartner && (
+        <div
+          style={{
+            background: "#ecfdf5",
+            border: "1px solid #86efac",
+            borderRadius: 12,
+            padding: 20,
+            marginBottom: 20,
+          }}
+        >
+          <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>
+            🛵 Your Delivery Partner
+          </h3>
+
+          {riderOtp && (
+            <p style={{ margin: "8px 0 16px", fontSize: 14 }}>
+              Share this OTP with the rider:{" "}
+              <strong
+                style={{ fontSize: 22, letterSpacing: 4, color: "#065f46" }}
+              >
+                {riderOtp}
+              </strong>
+            </p>
+          )}
+
+          {/* ✅ MAP WITH LOADER */}
+          {riderPos ? (
+            <div
+              style={{
+                width: "100%",
+                height: 350,
+                borderRadius: 12,
+                overflow: "hidden",
+                marginTop: 16,
+                border: "1px solid #86efac",
+                position: "relative",
+              }}
+            >
+              {/* Loader Overlay */}
+              {!mapLoaded && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "#ecfdf5",
+                    zIndex: 10,
+                    color: "#065f46",
+                    fontWeight: 600,
+                    gap: 12,
+                  }}
+                >
+                  <div
+                    className="spinner-sm"
+                    style={{ width: 24, height: 24, borderWidth: 3 }}
+                  />
+                  Loading Live Map...
+                </div>
+              )}
+
+              <MapContainer
+                center={[riderPos.lat, riderPos.lng]}
+                zoom={15}
+                style={{ height: "100%", width: "100%", zIndex: 1 }}
+                scrollWheelZoom={false}
+                whenReady={() => setMapLoaded(true)}
+              >
+                {/* ✅ FREE OpenStreetMap Tiles */}
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                />
+                <Marker position={[riderPos.lat, riderPos.lng]}>
+                  <Popup>Rider is here 🛵</Popup>
+                </Marker>
+                <MapSizeInvalidator />
+                <MapUpdater position={[riderPos.lat, riderPos.lng]} />
+              </MapContainer>
+            </div>
+          ) : order.status === "out_for_delivery" ? (
+            <p style={{ margin: "8px 0 0", fontSize: 13, color: "#065f46" }}>
+              Rider is on the way. Waiting for live location... 📡
+            </p>
+          ) : (
+            <p style={{ margin: "8px 0 0", fontSize: 13, color: "#065f46" }}>
+              Rider has been assigned to your order.
+            </p>
           )}
         </div>
       )}

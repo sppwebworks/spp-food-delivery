@@ -10,7 +10,8 @@ import {
 } from "../controllers/authController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { avatarUpload } from "../middleware/uploadMiddleware.js";
-import cloudinary from "../config/cloudinary.js"; // ✅ Import Cloudinary
+import cloudinary from "../config/cloudinary.js";
+import User from "../models/User.js"; // ✅ ADDED THIS - It was missing!
 
 const router = express.Router();
 
@@ -20,23 +21,19 @@ router.get("/me", protect, me);
 router.put("/me", protect, updateProfile);
 router.put("/password", protect, updatePassword);
 
-/* ============================================================
-   ✅ UPLOAD AVATAR (Cloudinary)
-   ============================================================ */
+/* AVATAR UPLOAD (Cloudinary) */
 router.post(
   "/upload-avatar",
   protect,
   avatarUpload.single("avatar"),
   async (req, res) => {
-    if (!req.file) {
+    if (!req.file)
       return res.status(400).json({ message: "No image file provided" });
-    }
 
     try {
-      // Upload buffer to Cloudinary
       const result = await new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
-          { folder: "spp-foodieapp/avatars" }, // Organize in a folder
+          { folder: "spp-foodieapp/avatars" },
           (error, result) => {
             if (error) reject(error);
             else resolve(result);
@@ -45,7 +42,6 @@ router.post(
         stream.end(req.file.buffer);
       });
 
-      // Update user in database
       const user = await User.findById(req.user._id);
       if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -54,7 +50,6 @@ router.post(
 
       res.json({
         success: true,
-        message: "Avatar uploaded successfully",
         avatar: result.secure_url,
         user: {
           _id: user._id,
@@ -66,7 +61,7 @@ router.post(
         },
       });
     } catch (err) {
-      console.error("Cloudinary avatar upload error:", err);
+      console.error("Cloudinary error:", err);
       res.status(500).json({ message: "Failed to upload avatar" });
     }
   },

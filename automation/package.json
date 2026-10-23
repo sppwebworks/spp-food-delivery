@@ -1,0 +1,15 @@
+{
+  "name": "food-delivery-automation",
+  "version": "1.0.0",
+  "description": "E2E and Security Automation for Food Delivery App",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.42.1",
+    "playwright": "^1.42.1"
+  }
+}

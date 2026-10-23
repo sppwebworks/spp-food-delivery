@@ -32,23 +32,22 @@ import webhookRoutes from "./routes/webhookRoutes.js";
 import bannerRoutes from "./routes/bannerRoutes.js";
 import supportRoutes from "./routes/supportRoutes.js";
 import adminSupportRoutes from "./routes/adminSupportRoutes.js";
+import riderRoutes from "./routes/riderRoutes.js";
+import adminRiderRoutes from "./routes/adminRiderRoutes.js";
 
 /* ---------- Middleware ---------- */
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
 import { sanitizeMongo } from "./middleware/sanitize.js";
 import { protect, adminOnly } from "./middleware/authMiddleware.js";
-import { getStats } from "./controllers/adminController.js"; // ✅ Direct import
+import { getStats } from "./controllers/adminController.js";
 
-/* ---------- ESM __dirname shim ---------- */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
-/* TRUST PROXY */
 app.set("trust proxy", process.env.NODE_ENV === "production" ? 1 : false);
 
-/* SECURITY HEADERS */
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
@@ -57,12 +56,14 @@ app.use(
   }),
 );
 
-/* CORS */
+/* CORS — RIDER_URL included */
 const allowedOrigins = [
   process.env.CLIENT_URL,
   process.env.ADMIN_URL,
+  process.env.RIDER_URL,
   "http://localhost:5173",
   "http://localhost:5174",
+  "http://localhost:5175",
   "http://localhost:3000",
 ].filter(Boolean);
 
@@ -79,17 +80,15 @@ app.use(
   }),
 );
 
-/* ✅ WEBHOOKS — BEFORE JSON PARSER */
+/* WEBHOOKS — BEFORE JSON PARSER */
 app.use("/api/payments/webhook", webhookRoutes);
 
 /* BODY PARSERS */
 app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true, limit: "5mb" }));
 
-/* MONGODB SANITIZATION */
 app.use(sanitizeMongo);
 
-/* STATIC FILES */
 app.use("/uploads", express.static(path.resolve(__dirname, "../uploads")));
 
 /* RATE LIMITERS */
@@ -113,7 +112,6 @@ app.use("/api", globalLimiter);
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
 
-/* HEALTH CHECK */
 app.get("/api/health", (req, res) =>
   res.json({
     status: "ok",
@@ -122,10 +120,6 @@ app.get("/api/health", (req, res) =>
   }),
 );
 
-/* ============================================================
-   ✅ EXPLICIT ADMIN STATS ROUTE 
-   (Must be above app.use("/api/admin", ...) to prevent /:id conflict)
-   ============================================================ */
 app.get("/api/admin/stats", protect, adminOnly, getStats);
 
 /* APPLICATION ROUTES */
@@ -148,6 +142,8 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/admin", adminRestaurantRoutes);
 app.use("/api/support", supportRoutes);
 app.use("/api/admin/support", adminSupportRoutes);
+app.use("/api/rider", riderRoutes);
+app.use("/api/admin", adminRiderRoutes);
 
 /* ERROR HANDLERS */
 app.use(notFound);
