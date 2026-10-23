@@ -1719,3 +1719,107 @@
     height: 80px;
   }
 }
+/* ============================================================
+   HOME PAGE — VALUE PROPS (Why Choose Us)
+   ============================================================ */
+.value-props {
+  margin: 64px 0 80px;
+  padding-top: 48px;
+  border-top: 1px solid var(--border);
+}
+
+.value-props-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.value-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px 24px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* The colored top border on hover */
+.value-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  transition: transform 0.3s ease;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.value-card-orange::before {
+  background: linear-gradient(90deg, #fc8019, #e56f0e);
+}
+.value-card-green::before {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+.value-card-blue::before {
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+}
+.value-card-purple::before {
+  background: linear-gradient(90deg, #8b5cf6, #6d28d9);
+}
+
+.value-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+  border-color: transparent;
+}
+
+.value-card:hover::before {
+  transform: scaleX(1);
+}
+
+.value-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+/* Icon Background Colors */
+.value-card-orange .value-icon {
+  background: rgba(252, 128, 25, 0.1);
+}
+.value-card-green .value-icon {
+  background: rgba(16, 185, 129, 0.1);
+}
+.value-card-blue .value-icon {
+  background: rgba(59, 130, 246, 0.1);
+}
+.value-card-purple .value-icon {
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.value-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 8px 0;
+  letter-spacing: -0.3px;
+}
+
+.value-desc {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.6;
+  margin: 0;
+}
