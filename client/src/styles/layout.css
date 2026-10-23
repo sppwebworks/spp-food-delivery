@@ -79,14 +79,11 @@
    ============================================================ */
 .navbar-search-slot {
   flex: 1;
-  max-width: 380px;
+  max-width: 420px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  transition: max-width 0.3s var(--ease);
-}
-.navbar-search-slot:focus-within {
-  max-width: 480px;
+  margin-right: 12px;
 }
 
 /* ============================================================
@@ -153,52 +150,89 @@
 }
 
 /* ============================================================
-   SEARCH AUTOCOMPLETE (Navbar)
+   SEARCH AUTOCOMPLETE — BASE & PILLS
    ============================================================ */
 .search-ac {
   position: relative;
   width: 100%;
+  display: flex;
 }
+
 .search-ac-navbar {
-  max-width: 420px;
-  flex: 1;
-  transition: max-width 0.3s var(--ease);
+  width: 100%;
+  max-width: 100%;
 }
+
+.search-ac-page {
+  max-width: 800px;
+  margin: 0 auto 32px auto;
+  width: 100%;
+}
+
+.search-ac-hero {
+  max-width: 600px;
+  margin: 0 auto 24px auto;
+  width: 100%;
+}
+
+/* The Pill Container */
 .search-ac-input-wrap {
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 48px;
-  padding: 0 8px 0 18px;
   background: var(--bg-2);
   border: 1.5px solid var(--border);
   border-radius: 999px;
+  padding: 0 6px 0 16px;
+  width: 100%;
   transition:
     border-color 0.15s,
     box-shadow 0.15s,
     background 0.15s;
   cursor: text;
+  box-sizing: border-box;
 }
+
+.search-ac-navbar .search-ac-input-wrap {
+  height: 44px;
+}
+.search-ac-page .search-ac-input-wrap {
+  height: 56px;
+  background: var(--bg);
+  padding-left: 20px;
+}
+.search-ac-hero .search-ac-input-wrap {
+  height: 60px;
+  background: #fff;
+  border-color: transparent;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.25);
+  padding-left: 24px;
+}
+
 .search-ac.focused .search-ac-input-wrap {
   background: var(--bg);
   border-color: var(--primary);
   box-shadow: 0 0 0 4px var(--primary-light);
 }
+.search-ac-hero.focused .search-ac-input-wrap {
+  border-color: var(--primary);
+  box-shadow:
+    0 24px 56px rgba(252, 128, 25, 0.35),
+    0 0 0 4px rgba(252, 128, 25, 0.18);
+  transform: translateY(-2px);
+}
+
 .search-ac-icon {
-  font-size: 16px;
+  font-size: 18px;
   color: var(--text-3);
   flex-shrink: 0;
-  transition:
-    color 0.15s,
-    transform 0.15s;
-  line-height: 1;
   display: flex;
   align-items: center;
 }
 .search-ac.focused .search-ac-icon {
   color: var(--primary);
-  transform: scale(1.08);
 }
+
 .search-ac-input {
   flex: 1;
   border: none;
@@ -219,6 +253,7 @@
   border: none;
   box-shadow: none;
 }
+
 .search-ac-clear {
   width: 24px;
   height: 24px;
@@ -231,17 +266,15 @@
   font-size: 11px;
   font-weight: 700;
   flex-shrink: 0;
-  transition:
-    background 0.15s,
-    color 0.15s,
-    transform 0.15s;
   border: none;
+  cursor: pointer;
+  transition: all 0.15s;
 }
 .search-ac-clear:hover {
   background: var(--border-2);
   color: var(--text);
-  transform: scale(1.05);
 }
+
 .search-ac-kbd {
   font-size: 10px;
   font-weight: 700;
@@ -253,10 +286,47 @@
   letter-spacing: 0.3px;
   flex-shrink: 0;
   user-select: none;
+  margin-right: 4px;
 }
 .search-ac.focused .search-ac-kbd {
   display: none;
 }
+
+.search-ac-submit {
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+  color: #fff;
+  padding: 0 24px;
+  height: 44px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition:
+    transform 0.1s,
+    box-shadow 0.15s;
+}
+.search-ac-page .search-ac-submit {
+  height: 46px;
+}
+.search-ac-hero .search-ac-submit {
+  height: 50px;
+}
+.search-ac-submit:hover:not(:disabled) {
+  box-shadow: 0 6px 16px rgba(252, 128, 25, 0.4);
+}
+.search-ac-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   SEARCH AUTOCOMPLETE — DROPDOWN (CRITICAL FIX)
+   ============================================================ */
 .search-ac-dropdown {
   position: absolute;
   top: calc(100% + 8px);
@@ -270,11 +340,101 @@
   z-index: 500;
   max-height: 420px;
   overflow-y: auto;
-  animation: fadeIn 0.15s;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.search-ac-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px 6px;
+}
+
+.search-ac-section-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.search-ac-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s;
+  color: var(--text);
+  background: none;
+  border: none;
+  font-family: inherit;
+}
+
+.search-ac-item.highlighted,
+.search-ac-item:hover {
+  background: var(--bg-3);
+}
+
+/* ✅ Fixes the giant images */
+.search-ac-item-img {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--bg-3);
+}
+
+.search-ac-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.search-ac-item-text strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-ac-item-text small {
+  font-size: 12px;
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-ac-see-all {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  margin-top: 4px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
+  background: none;
+  cursor: pointer;
+  border-radius: 0 0 10px 10px;
+  font-family: inherit;
+}
+.search-ac-see-all:hover {
+  background: var(--primary-light);
 }
 
 /* ============================================================
-   LOCATION PICKER & ANNOUNCEMENT BAR
+   LOCATION PICKER
    ============================================================ */
 .location-picker {
   display: flex;
@@ -346,7 +506,6 @@
   transition: transform 0.2s ease;
 }
 
-/* Location Dropdown */
 .location-dropdown {
   position: absolute;
   top: calc(100% + 10px);
@@ -420,6 +579,109 @@
 }
 .location-option.active .location-option-name {
   color: var(--primary);
+}
+
+/* ============================================================
+   VALUE PROPS (Why SPP FoodieApp?)
+   ============================================================ */
+.value-props {
+  margin: 64px 0 80px;
+  padding-top: 48px;
+  border-top: 1px solid var(--border);
+}
+
+.value-props-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.value-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px 24px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.value-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  transition: transform 0.3s ease;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.value-card-orange::before {
+  background: linear-gradient(90deg, #fc8019, #e56f0e);
+}
+.value-card-green::before {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+.value-card-blue::before {
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+}
+.value-card-purple::before {
+  background: linear-gradient(90deg, #8b5cf6, #6d28d9);
+}
+
+.value-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+  border-color: transparent;
+}
+
+.value-card:hover::before {
+  transform: scaleX(1);
+}
+
+.value-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.value-card-orange .value-icon {
+  background: rgba(252, 128, 25, 0.1);
+}
+.value-card-green .value-icon {
+  background: rgba(16, 185, 129, 0.1);
+}
+.value-card-blue .value-icon {
+  background: rgba(59, 130, 246, 0.1);
+}
+.value-card-purple .value-icon {
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.value-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 8px 0;
+  letter-spacing: -0.3px;
+}
+
+.value-desc {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.6;
+  margin: 0;
 }
 
 /* ============================================================
